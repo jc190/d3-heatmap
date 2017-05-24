@@ -30,8 +30,12 @@ class Chart extends Component {
     this.elContainer = document.querySelector('.chart--container');
     this.elSVG = document.querySelector('.chart--svg');
     this.setDimensions(this.elContainer.clientWidth, 500);
-    this.getJSON(this.props.dataURL);
-    this.renderChartSVG();
+    if (localStorage._jc190HeatMap) {
+      this.data = JSON.parse(localStorage._jc190HeatMap);
+      this.renderChartSVG();
+    } else {
+      this.getJSON(this.props.dataURL, this.renderChartSVG);
+    }
   }
   renderChartSVG () {
     // Bar width
@@ -40,7 +44,7 @@ class Chart extends Component {
     this.colors = d3.scaleQuantize()
       .domain([Math.floor(d3.min(this.data.monthlyVariance, (d) => this.data.baseTemperature + d.variance)), d3.max(this.data.monthlyVariance, (d) => this.data.baseTemperature + d.variance)])
       .range(tempColors);
-    console.log(this.colors(8))
+    // console.log(this.colors(8))
     // X Axis
     this.x = d3.scaleLinear()
       .domain([
@@ -125,15 +129,13 @@ class Chart extends Component {
     this.width = w - this.margin.left - this.margin.right;
     this.height = h - this.margin.top - this.margin.bottom;
   }
-  getJSON (url) {
-    // Refactor after development to do a json call everytime instead of caching.
-    if (!localStorage._jc190HeatMap) {
-      d3.json(url, (data) => {
-        localStorage.setItem('_jc190HeatMap', JSON.stringify(data));
-      });
-    }
-    this.data = JSON.parse(localStorage._jc190HeatMap);
-    console.log(this.data)
+  getJSON (url, callback) {
+    // Json request
+    d3.json(url, (data) => {
+      localStorage.setItem('_jc190HeatMap', JSON.stringify(data));
+      this.data = JSON.parse(localStorage._jc190HeatMap);
+      callback();
+    });
   }
   render() {
     return (
